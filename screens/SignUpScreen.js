@@ -45,7 +45,7 @@ export default function SignUpPage({ navigation, setIsSignedIn }) {
                 setConfirmPassword('');
                 const auth = getAuth();
                 const user = auth.currentUser;
-                addUser(user.uid, email, isAdmin = false, isActive = true);
+                addUser(user.uid, email, isAdmin = false, isActive = true, maxScore = 0);
               })
               .catch((error) => {
                 setErrorMessage(error.message);
@@ -82,7 +82,7 @@ export default function SignUpPage({ navigation, setIsSignedIn }) {
     }
   };
 
-  const addUser = async (userId, email, isAdmin = false, isActive = true) => {
+  const addUser = async (userId, email, isAdmin = false, isActive = true, maxScore =  0) => {
     try {
       const firestore = getFirestore();
       const userRef = doc(firestore, 'Users', userId);
@@ -91,6 +91,7 @@ export default function SignUpPage({ navigation, setIsSignedIn }) {
         email,
         isAdmin,
         isActive,
+        maxScore,
       };
 
       await setDoc(userRef, newUser);

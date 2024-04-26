@@ -1,21 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
-
-const PlayPage = () => {
+const Scores = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [usersData, setUsersData] = useState([]);
 
   useEffect(() => {
-
-
-
-    
+    const fetchUsers = async () => {
+      try {
+        const firestore = getFirestore();
+        const usersCollection = collection(firestore, 'Users');
+        const usersSnapshot = await getDocs(usersCollection);
+        const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const filteredUsers = users.filter(user => !user.isAdmin); // Filter users where isAdmin is false
+  
+        // Check if MaxScore field exists for each user, if not, create it with a value of 0
+        const updatedUsers = await Promise.all(filteredUsers.map(async user => {
+          if (!user.hasOwnProperty('maxScore')) {
+            const userRef = doc(firestore, 'Users', user.id);
+            await updateDoc(userRef, { maxScore: 0 });
+            return { ...user, maxScore: 0 };
+          }
+          return user;
+        }));
+  
+        setUsersData(updatedUsers);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
   }, []);
+  
 
-
-
-  if (isLoading)
-  {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
@@ -26,7 +48,12 @@ const PlayPage = () => {
 
   return (
     <View style={styles.container}>
-      
+      {usersData.map(user => (
+        <View key={user.id} style={styles.userContainer}>
+          <Text>Email: {user.email}</Text>
+          <Text>Max Score: {user.maxScore}</Text>
+        </View>
+      ))}
     </View>
   );
 };
@@ -43,7 +70,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  userContainer: {
+    marginBottom: 10,
+  },
 });
 
-export default PlayPage;
+export default Scores;
