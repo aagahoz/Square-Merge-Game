@@ -162,13 +162,13 @@ export default function SignUpPage({ navigation, setIsSignedIn }) {
     </KeyboardAvoidingView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#faf8ef', // Önceki renk: #f7f7f7
+    padding: 20,
   },
   input: {
     width: '80%',
@@ -179,11 +179,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   linkText: {
-    color: '#007BFF',
+    color: '#776e65',
     marginBottom: 20,
   },
   signUpButton: {
-    backgroundColor: '#28A745',
+    backgroundColor: '#8f7a66',
     padding: 10,
     borderRadius: 5,
   },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   errorMessage: {
-    color: 'tomato',
+    color: '#e74c3c', // Önceki renk: tomato
     marginTop: 15,
     fontSize: 14,
   },

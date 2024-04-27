@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const Scores = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +24,9 @@ const Scores = () => {
           }
           return user;
         }));
+
+        // Sort users by maxScore in descending order
+        updatedUsers.sort((a, b) => b.maxScore - a.maxScore);
   
         setUsersData(updatedUsers);
         setIsLoading(false);
@@ -48,12 +51,17 @@ const Scores = () => {
 
   return (
     <View style={styles.container}>
-      {usersData.map(user => (
-        <View key={user.id} style={styles.userContainer}>
-          <Text>Email: {user.email}</Text>
-          <Text>Max Score: {user.maxScore}</Text>
-        </View>
-      ))}
+      <FlatList
+        data={usersData}
+        keyExtractor={item => item.id}
+        renderItem={({ item, index }) => (
+          <View style={[styles.userContainer, index === 0 ? styles.highlightedUser : null]}>
+            <Text style={styles.emailText}>Email: {item.email}</Text>
+            <Text style={styles.scoreText}>Max Score: {item.maxScore}</Text>
+            {index === 0 && <Text style={styles.highestScoreText}>🏆 Highest Score 🏆</Text>}
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -61,10 +69,9 @@ const Scores = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#faf8ef',
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -72,7 +79,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   userContainer: {
-    marginBottom: 10,
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#ffebcd',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd', 
+  },
+  highlightedUser: {
+    borderColor: '#3498db', 
+  },
+  emailText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#2c3e50',
+  },
+  scoreText: {
+    fontSize: 16,
+    color: '#2c3e50',
+  },
+  highestScoreText: {
+    fontSize: 12,
+    color: '#e74c3c',
+    textAlign: 'center',
+    marginTop: 5,
   },
 });
 

@@ -147,10 +147,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#faf8ef', // Önceki renk: #f7f7f7
   },
   errorMessage: {
-    color: 'red',
+    color: '#e74c3c', // Önceki renk: red
     marginBottom: 20,
   },
   input: {
@@ -160,13 +160,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     borderRadius: 5,
+    borderColor: '#ddd', // Önceki renk: borderColor: '#ddd'
   },
   linkText: {
-    color: '#007BFF',
+    color: '#776e65',
     marginBottom: 20,
   },
   signInButton: {
-    backgroundColor: '#28A745',
+    backgroundColor: '#8f7a66',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',

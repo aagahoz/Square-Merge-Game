@@ -118,22 +118,21 @@ export default function SettingsPage({ setIsSignedIn }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#faf8ef', // Önceki renk: #faf8ef
     paddingHorizontal: 20,
   },
   buttonText: {
-    color: 'black',
+    color: '#000', // Önceki renk: #000
     textAlign: 'center',
     fontSize: 16,
   },
   logoutButton: {
-    backgroundColor: '#e74c3c',
+    backgroundColor: '#8f7a66', // Önceki renk: #8f7a66
     padding: 12,
     borderRadius: 20,
     position: 'absolute',
@@ -148,7 +147,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     marginBottom: 10,
-    color: '#333',
+    color: '#776e65', // Önceki renk: #333
   },
   input: {
     height: 40,
@@ -158,10 +157,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 10,
     width: '100%',
-    color: '#333',
+    color: '#776e65', // Önceki renk: #333
   },
   button: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#8f7a66', // Önceki renk: #8f7a66
     padding: 12,
     borderRadius: 8,
     marginBottom: 10,
@@ -169,12 +168,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#e74c3c',
+    color: '#e74c3c', // Önceki renk: #e74c3c
     textAlign: 'center',
     marginTop: 10,
   },
   successText: {
-    color: '#2ecc71',
+    color: '#2ecc71', // Önceki renk: #2ecc71
     textAlign: 'center',
     marginTop: 10,
   },
