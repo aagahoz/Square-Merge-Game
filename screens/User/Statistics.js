@@ -13,9 +13,8 @@ const Scores = () => {
         const usersCollection = collection(firestore, 'Users');
         const usersSnapshot = await getDocs(usersCollection);
         const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const filteredUsers = users.filter(user => !user.isAdmin); // Filter users where isAdmin is false
+        const filteredUsers = users.filter(user => !user.isAdmin); 
   
-        // Check if MaxScore field exists for each user, if not, create it with a value of 0
         const updatedUsers = await Promise.all(filteredUsers.map(async user => {
           if (!user.hasOwnProperty('maxScore')) {
             const userRef = doc(firestore, 'Users', user.id);
@@ -25,7 +24,6 @@ const Scores = () => {
           return user;
         }));
 
-        // Sort users by maxScore in descending order
         updatedUsers.sort((a, b) => b.maxScore - a.maxScore);
   
         setUsersData(updatedUsers);

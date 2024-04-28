@@ -1,40 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, query, where } from 'firebase/firestore';
+import CustomAlert from './CustomAlert';
+
+
 const PlayPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [board, setBoard] = useState([]);
   const [score, setScore] = useState(0);
   const [maxScore, setMaxScore] = useState(0);
+  const [isPopupVisible, setPopupVisible] = useState(false);
+ 
 
-
+  
   useEffect(() => {
     const loadGameFromStorage = async () => {
-      try {
+      try
+      {
         const savedBoard = await AsyncStorage.getItem('game_board');
         const savedScore = await AsyncStorage.getItem('game_score');
         setMaxScore(await getMaxScore(getUserEmail()));
 
-        if (savedBoard && savedScore) {
+        if (savedBoard && savedScore)
+        {
           setBoard(JSON.parse(savedBoard));
           setScore(parseInt(savedScore, 10));
           console.log('Game data loaded successfully.');
-        } else {
+        } else
+        {
           initializeBoard();
         }
-      } catch (error) {
+      } catch (error)
+      {
         console.error('Error loading game data:', error);
         initializeBoard();
       }
     };
-  
+
     loadGameFromStorage();
     setIsLoading(false);
 
   }, []);
-  
+
+
+
+  const togglePopup = () => {
+    setPopupVisible(!isPopupVisible);
+  };
+
 
   const initializeBoard = () => {
     const initialBoard = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));
@@ -45,17 +60,18 @@ const PlayPage = () => {
   };
 
   const saveGameToStorage = async () => {
-    try {
+    try
+    {
       await AsyncStorage.setItem('game_board', JSON.stringify(board));
       await AsyncStorage.setItem('game_score', score.toString());
       console.log('Game data saved successfully.');
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error saving game data:', error);
     }
   };
-  
 
-  // Oturum açmış kullanıcının ID'sini döndüren fonksiyon
+
   const getUserEmail = () => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -64,43 +80,51 @@ const PlayPage = () => {
   }
 
   const updateMaxScoreInFirestore = async (email, newMaxScore) => {
-    try {
+    try
+    {
       const firestore = getFirestore();
-      
+
       const userQuery = query(collection(firestore, 'Users'), where('email', '==', email));
-      
+
       const userSnapshot = await getDocs(userQuery);
-  
-      if (!userSnapshot.empty) {
+
+      if (!userSnapshot.empty)
+      {
         const userId = userSnapshot.docs[0].id;
-  
+
         const userDataUpdate = { maxScore: newMaxScore };
-  
+
         await updateDoc(doc(firestore, 'Users', userId), userDataUpdate);
-        
+
         console.log('Max score updated successfully in Firestore');
-      } else {
+      } else
+      {
         console.log('User not found');
       }
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error updating max score in Firestore:', error);
     }
   };
 
   const getMaxScore = async (email) => {
-    try {
+    try
+    {
       const firestore = getFirestore();
       const userQuery = query(collection(firestore, 'Users'), where('email', '==', email));
       const userSnapshot = await getDocs(userQuery);
 
-      if (!userSnapshot.empty) {
+      if (!userSnapshot.empty)
+      {
         const userData = userSnapshot.docs[0].data();
         return userData.maxScore || 0;
-      } else {
+      } else
+      {
         console.log('User not found');
         return 0;
       }
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error getting max score from Firestore:', error);
       return 0;
     }
@@ -123,12 +147,39 @@ const PlayPage = () => {
     }
   };
 
+  const isGameOver = (board) => {
+    for (let row = 0; row < 4; row++)
+    {
+      for (let col = 0; col < 4; col++)
+      {
+        if (board[row][col] === 0)
+        {
+          return false;
+        }
+      }
+    }
 
+    for (let row = 0; row < 4; row++)
+    {
+      for (let col = 0; col < 4; col++)
+      {
+        if (col < 3 && board[row][col] === board[row][col + 1])
+        {
+          return false;
+        }
+        if (row < 3 && board[row][col] === board[row + 1][col])
+        {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
 
   const moveUp = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
     let moved = false;
-
     for (let col = 0; col < 4; col++)
     {
       for (let row = 1; row < 4; row++)
@@ -153,13 +204,16 @@ const PlayPage = () => {
         }
       }
     }
-
     if (moved)
     {
       addRandomNumber(newBoard);
       setBoard(newBoard);
-      saveGameToStorage(); // Oyun tahtası değiştiği zaman kaydet
-
+      saveGameToStorage();
+      if (isGameOver(newBoard))
+      {
+        console.log('Game Over');
+        setPopupVisible(true)
+      }
     }
   };
 
@@ -196,15 +250,19 @@ const PlayPage = () => {
     {
       addRandomNumber(newBoard);
       setBoard(newBoard);
-      saveGameToStorage(); 
+      saveGameToStorage();
+      if (isGameOver(newBoard))
+      {
+        console.log('Game Over');
+        setPopupVisible(false)
 
+      }
     }
   };
 
   const moveRight = () => {
     const newBoard = JSON.parse(JSON.stringify(board));
     let moved = false;
-
     for (let row = 0; row < 4; row++)
     {
       for (let col = 2; col >= 0; col--)
@@ -229,12 +287,16 @@ const PlayPage = () => {
         }
       }
     }
-
     if (moved)
     {
       addRandomNumber(newBoard);
       setBoard(newBoard);
-      saveGameToStorage(); 
+      saveGameToStorage();
+      if (isGameOver(newBoard))
+      {
+        console.log('Game Over');
+        setPopupVisible(false)
+      }
     }
   };
 
@@ -272,9 +334,14 @@ const PlayPage = () => {
       addRandomNumber(newBoard);
       setBoard(newBoard);
       saveGameToStorage();
+      if (isGameOver(newBoard))
+      {
+        console.log('Game Over');
+        setPopupVisible(true)
+
+      }
     }
   };
-
 
   const renderCell = (value) => {
     if (value !== 0)
@@ -285,47 +352,46 @@ const PlayPage = () => {
   };
 
   const restartGame = async () => {
+    await setPopupVisible(true)
     setIsLoading(true);
-  
-    // Kaydedilen oyunu sil
-    try {
+    try
+    {
       await AsyncStorage.removeItem('game_board');
       await AsyncStorage.removeItem('game_score');
       console.log('Saved game data removed successfully.');
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error removing saved game data:', error);
     }
-  
     let NEW_MAX_SCORE = score;
     console.log("Skor : " + NEW_MAX_SCORE);
-  
     const userEmail = getUserEmail();
-  
-    try {
+    try
+    {
       const firestore = getFirestore();
       const userQuery = query(collection(firestore, 'Users'), where('email', '==', userEmail));
       const userSnapshot = await getDocs(userQuery);
-  
-      if (!userSnapshot.empty) {
+      if (!userSnapshot.empty)
+      {
         const userId = userSnapshot.docs[0].id;
         const userData = userSnapshot.docs[0].data();
         const oldMaxScore = userData.maxScore || 0;
-  
-        if (NEW_MAX_SCORE > oldMaxScore) {
+
+        if (NEW_MAX_SCORE > oldMaxScore)
+        {
           console.log("new score : " + NEW_MAX_SCORE + " -- " + "old max score : " + oldMaxScore)
           await updateMaxScoreInFirestore(userEmail, NEW_MAX_SCORE);
           console.log('Max score updated successfully in Firestore');
         }
       }
-    } catch (error) {
+    } catch (error)
+    {
       console.error('Error updating max score in Firestore:', error);
     }
-  
     initializeBoard();
-  
     setIsLoading(false);
   };
-  
+
 
   if (isLoading)
   {
@@ -338,44 +404,55 @@ const PlayPage = () => {
   }
   return (
     <View style={styles.container}>
-  <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
-    <Text style={styles.resetButtonText}>Reset</Text>
-  </TouchableOpacity>
-  
-  <View style={styles.maxScoreContainer}>
-    <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
-  </View>
 
-  <View style={styles.scoreContainer}>
-    <Text style={styles.scoreText}>Score: {score}</Text>
-  </View>
-  <View style={styles.board}>
-    {board.map((row, rowIndex) => (
-      <View key={rowIndex} style={styles.row}>
-        {row.map((cell, cellIndex) => (
-          <TouchableOpacity key={cellIndex} style={styles.cell}>
-            {renderCell(cell)}
-          </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={togglePopup}>
+        <Text style={styles.buttonText}>Show Popup</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
+        <Text style={styles.resetButtonText}>Reset</Text>
+      </TouchableOpacity>
+
+      <View style={styles.maxScoreContainer}>
+        <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
+      </View>
+
+      <View style={styles.scoreContainer}>
+        <Text style={styles.scoreText}>Score: {score}</Text>
+      </View>
+
+      <View style={styles.board}>
+        {board.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {row.map((cell, cellIndex) => (
+              <TouchableOpacity key={cellIndex} style={styles.cell}>
+                {renderCell(cell)}
+              </TouchableOpacity>
+            ))}
+          </View>
         ))}
       </View>
-    ))}
-  </View>
-  <TouchableOpacity style={styles.button} onPress={moveUp}>
-    <Text style={styles.buttonText}>Up</Text>
-  </TouchableOpacity>
-  <View style={styles.buttonContainer}>
-    <TouchableOpacity style={styles.button} onPress={moveLeft}>
-      <Text style={styles.buttonText}>Left</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.button} onPress={moveRight}>
-      <Text style={styles.buttonText}>Right</Text>
-    </TouchableOpacity>
-  </View>
-  <TouchableOpacity style={styles.button} onPress={moveDown}>
-    <Text style={styles.buttonText}>Down</Text>
-  </TouchableOpacity>
-</View>
 
+      <TouchableOpacity style={styles.button} onPress={moveUp}>
+        <Text style={styles.buttonText}>Up</Text>
+      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={moveLeft}>
+          <Text style={styles.buttonText}>Left</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={moveRight}>
+          <Text style={styles.buttonText}>Right</Text>
+        </TouchableOpacity>
+      </View>
+      <TouchableOpacity style={styles.button} onPress={moveDown}>
+        <Text style={styles.buttonText}>Down</Text>
+      </TouchableOpacity>
+
+      <CustomAlert
+        visibility={isPopupVisible}
+        dismissAlert={togglePopup}
+      />
+    </View>
   );
 };
 
@@ -466,7 +543,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    
+
   },
 });
 
