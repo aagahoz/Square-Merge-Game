@@ -13,8 +13,6 @@ const PlayPage = () => {
   const [maxScore, setMaxScore] = useState(0);
   const [isPopupVisible, setPopupVisible] = useState(false);
  
-
-  
   useEffect(() => {
     const loadGameFromStorage = async () => {
       try
@@ -404,55 +402,55 @@ const PlayPage = () => {
   }
   return (
     <View style={styles.container}>
+    <View style={styles.maxScoreContainer}>
+      <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
+    </View>
+    <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
+      <Text style={styles.resetButtonText}>Reset</Text>
+    </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={togglePopup}>
-        <Text style={styles.buttonText}>Show Popup</Text>
-      </TouchableOpacity>
+    <View style={styles.scoreContainer}>
+      <Text style={styles.scoreText}>Score: {score}</Text>
+    </View>
 
-      <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
-        <Text style={styles.resetButtonText}>Reset</Text>
-      </TouchableOpacity>
+    <View style={styles.board}>
+      {board.map((row, rowIndex) => (
+        <View key={rowIndex} style={styles.row}>
+          {row.map((cell, cellIndex) => (
+            <TouchableOpacity key={cellIndex} style={styles.cell}>
+              {renderCell(cell)}
+            </TouchableOpacity>
+          ))}
+        </View>
+      ))}
+    </View>
 
-      <View style={styles.maxScoreContainer}>
-        <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
-      </View>
-
-      <View style={styles.scoreContainer}>
-        <Text style={styles.scoreText}>Score: {score}</Text>
-      </View>
-
-      <View style={styles.board}>
-        {board.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((cell, cellIndex) => (
-              <TouchableOpacity key={cellIndex} style={styles.cell}>
-                {renderCell(cell)}
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-      </View>
-
+    <View style={styles.buttonContainer}>
       <TouchableOpacity style={styles.button} onPress={moveUp}>
         <Text style={styles.buttonText}>Up</Text>
       </TouchableOpacity>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={moveLeft}>
-          <Text style={styles.buttonText}>Left</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={moveRight}>
-          <Text style={styles.buttonText}>Right</Text>
-        </TouchableOpacity>
-      </View>
+    </View>
+
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity style={styles.button} onPress={moveLeft}>
+        <Text style={styles.buttonText}>Left</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={moveRight}>
+        <Text style={styles.buttonText}>Right</Text>
+      </TouchableOpacity>
+    </View>
+
+    <View style={styles.buttonContainer}>
       <TouchableOpacity style={styles.button} onPress={moveDown}>
         <Text style={styles.buttonText}>Down</Text>
       </TouchableOpacity>
-
-      <CustomAlert
-        visibility={isPopupVisible}
-        dismissAlert={togglePopup}
-      />
     </View>
+
+    <CustomAlert
+      visibility={isPopupVisible}
+      dismissAlert={togglePopup}
+    />
+  </View>
   );
 };
 
@@ -484,7 +482,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   scoreContainer: {
-    marginBottom: 20,
+    marginBottom: 5,
+    marginTop: 50,
   },
   scoreText: {
     fontSize: 24,
@@ -495,7 +494,8 @@ const styles = StyleSheet.create({
     borderWidth: 5,
     borderColor: '#bbada0',
     borderRadius: 10,
-    padding: 5,
+    padding:0,
+    marginTop: 10,
   },
   row: {
     flexDirection: 'row',
@@ -515,12 +515,12 @@ const styles = StyleSheet.create({
     color: '#776e65',
   },
   buttonContainer: {
-    marginTop: 20,
+    marginTop: 10,
     flexDirection: 'row',
   },
   button: {
     backgroundColor: '#8f7a66',
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginHorizontal: 10,

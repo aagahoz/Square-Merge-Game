@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
-const Scores = () => {
+const Statistics = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [usersData, setUsersData] = useState([]);
 
@@ -105,4 +105,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Scores;
+export default Statistics;
