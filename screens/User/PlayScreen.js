@@ -4,6 +4,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, query, where } from 'firebase/firestore';
 import CustomAlert from './CustomAlert';
+import Karekok from './Karekok.js';
+
+
+const initialGridSize = 4;
+
+const generateRandomNumber = () => {
+  const possibleNumbers = [2, 4, 8];
+  return possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
+};
 
 
 const PlayPage = () => {
@@ -12,7 +21,9 @@ const PlayPage = () => {
   const [score, setScore] = useState(0);
   const [maxScore, setMaxScore] = useState(0);
   const [isPopupVisible, setPopupVisible] = useState(false);
- 
+  const [selectedCells, setSelectedCells] = useState([]);
+  const [okeyButtonEnabled, setOkeyButtonEnabled] = useState(false);
+  
   useEffect(() => {
     const loadGameFromStorage = async () => {
       try
@@ -42,19 +53,16 @@ const PlayPage = () => {
 
   }, []);
 
-
-
   const togglePopup = () => {
     setPopupVisible(!isPopupVisible);
   };
 
-
   const initializeBoard = () => {
-    const initialBoard = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));
-    addRandomNumber(initialBoard);
-    addRandomNumber(initialBoard);
-    setBoard(initialBoard);
-    setScore(0);
+    const newGrid = Array.from({ length: initialGridSize }, () =>
+      Array.from({ length: initialGridSize }, () => generateRandomNumber())
+    );
+    setBoard(newGrid);
+    
   };
 
   const saveGameToStorage = async () => {
@@ -68,7 +76,6 @@ const PlayPage = () => {
       console.error('Error saving game data:', error);
     }
   };
-
 
   const getUserEmail = () => {
     const auth = getAuth();
@@ -175,178 +182,20 @@ const PlayPage = () => {
     return true;
   };
 
-  const moveUp = () => {
-    const newBoard = JSON.parse(JSON.stringify(board));
-    let moved = false;
-    for (let col = 0; col < 4; col++)
-    {
-      for (let row = 1; row < 4; row++)
-      {
-        if (newBoard[row][col] !== 0)
-        {
-          let currentRow = row;
-          while (currentRow > 0 && newBoard[currentRow - 1][col] === 0)
-          {
-            newBoard[currentRow - 1][col] = newBoard[currentRow][col];
-            newBoard[currentRow][col] = 0;
-            currentRow--;
-            moved = true;
-          }
-          if (currentRow > 0 && newBoard[currentRow - 1][col] === newBoard[currentRow][col])
-          {
-            newBoard[currentRow - 1][col] *= 2;
-            newBoard[currentRow][col] = 0;
-            setScore(prevScore => prevScore + newBoard[currentRow - 1][col]);
-            moved = true;
-          }
-        }
-      }
-    }
-    if (moved)
-    {
-      addRandomNumber(newBoard);
-      setBoard(newBoard);
-      saveGameToStorage();
-      if (isGameOver(newBoard))
-      {
-        console.log('Game Over');
-        setPopupVisible(true)
-      }
-    }
-  };
-
-  const moveDown = () => {
-    const newBoard = JSON.parse(JSON.stringify(board));
-    let moved = false;
-
-    for (let col = 0; col < 4; col++)
-    {
-      for (let row = 2; row >= 0; row--)
-      {
-        if (newBoard[row][col] !== 0)
-        {
-          let currentRow = row;
-          while (currentRow < 3 && newBoard[currentRow + 1][col] === 0)
-          {
-            newBoard[currentRow + 1][col] = newBoard[currentRow][col];
-            newBoard[currentRow][col] = 0;
-            currentRow++;
-            moved = true;
-          }
-          if (currentRow < 3 && newBoard[currentRow + 1][col] === newBoard[currentRow][col])
-          {
-            newBoard[currentRow + 1][col] *= 2;
-            newBoard[currentRow][col] = 0;
-            setScore(prevScore => prevScore + newBoard[currentRow + 1][col]);
-            moved = true;
-          }
-        }
-      }
-    }
-
-    if (moved)
-    {
-      addRandomNumber(newBoard);
-      setBoard(newBoard);
-      saveGameToStorage();
-      if (isGameOver(newBoard))
-      {
-        console.log('Game Over');
-        setPopupVisible(false)
-
-      }
-    }
-  };
-
-  const moveRight = () => {
-    const newBoard = JSON.parse(JSON.stringify(board));
-    let moved = false;
-    for (let row = 0; row < 4; row++)
-    {
-      for (let col = 2; col >= 0; col--)
-      {
-        if (newBoard[row][col] !== 0)
-        {
-          let currentCol = col;
-          while (currentCol < 3 && newBoard[row][currentCol + 1] === 0)
-          {
-            newBoard[row][currentCol + 1] = newBoard[row][currentCol];
-            newBoard[row][currentCol] = 0;
-            currentCol++;
-            moved = true;
-          }
-          if (currentCol < 3 && newBoard[row][currentCol + 1] === newBoard[row][currentCol])
-          {
-            newBoard[row][currentCol + 1] *= 2;
-            newBoard[row][currentCol] = 0;
-            setScore(prevScore => prevScore + newBoard[row][currentCol + 1]);
-            moved = true;
-          }
-        }
-      }
-    }
-    if (moved)
-    {
-      addRandomNumber(newBoard);
-      setBoard(newBoard);
-      saveGameToStorage();
-      if (isGameOver(newBoard))
-      {
-        console.log('Game Over');
-        setPopupVisible(false)
-      }
-    }
-  };
-
-  const moveLeft = () => {
-    const newBoard = JSON.parse(JSON.stringify(board));
-    let moved = false;
-
-    for (let row = 0; row < 4; row++)
-    {
-      for (let col = 1; col < 4; col++)
-      {
-        if (newBoard[row][col] !== 0)
-        {
-          let currentCol = col;
-          while (currentCol > 0 && newBoard[row][currentCol - 1] === 0)
-          {
-            newBoard[row][currentCol - 1] = newBoard[row][currentCol];
-            newBoard[row][currentCol] = 0;
-            currentCol--;
-            moved = true;
-          }
-          if (currentCol > 0 && newBoard[row][currentCol - 1] === newBoard[row][currentCol])
-          {
-            newBoard[row][currentCol - 1] *= 2;
-            newBoard[row][currentCol] = 0;
-            setScore(prevScore => prevScore + newBoard[row][currentCol - 1]);
-            moved = true;
-          }
-        }
-      }
-    }
-
-    if (moved)
-    {
-      addRandomNumber(newBoard);
-      setBoard(newBoard);
-      saveGameToStorage();
-      if (isGameOver(newBoard))
-      {
-        console.log('Game Over');
-        setPopupVisible(true)
-
-      }
-    }
-  };
-
-  const renderCell = (value) => {
-    if (value !== 0)
-    {
-      return <Text style={styles.cellText}>{value}</Text>;
-    }
-    return null;
+  const renderCell = (cell, rowIndex, colIndex) => {
+    const isSelected =
+      selectedCells.find((selectedCell) => selectedCell.row === rowIndex && selectedCell.col === colIndex) !==
+      undefined;
+    const cellStyle = isSelected ? [styles.cell, styles.selectedCell] : styles.cell;
+    return (
+      <TouchableOpacity
+        key={`${rowIndex}-${colIndex}`}
+        style={cellStyle}
+        onPress={() => handleCellPress(rowIndex, colIndex)}
+      >
+        <Text style={styles.cellText}>{cell !== null ? cell : ''}</Text>
+      </TouchableOpacity>
+    );
   };
 
   const restartGame = async () => {
@@ -390,6 +239,83 @@ const PlayPage = () => {
     setIsLoading(false);
   };
 
+  const handleCellPress = (rowIndex, colIndex) => {
+    const cellIndex = selectedCells.findIndex((cell) => cell.row === rowIndex && cell.col === colIndex);
+    if (cellIndex !== -1)
+    {
+      const updatedSelectedCells = [...selectedCells];
+      updatedSelectedCells.splice(cellIndex, 1);
+      setSelectedCells(updatedSelectedCells);
+      if (updatedSelectedCells.length !== 2)
+      {
+        setOkeyButtonEnabled(false);
+      }
+      return;
+    }
+
+    if (selectedCells.length === 2) return;
+    const cell = { row: rowIndex, col: colIndex };
+    setSelectedCells([...selectedCells, cell]);
+    if (selectedCells.length === 1)
+    {
+      setOkeyButtonEnabled(true);
+    }
+  };
+
+  function carpimHesapla(karekok1, karekok2) {
+    // Her iki karekök nesnesinin reel kısımlarını çarp
+    const reelCarpim = karekok1.reelKisim * karekok2.reelKisim;
+
+    // Her iki karekök nesnesinin köklü kısımlarını çarp
+    const kokluCarpim = karekok1.kokluKisim * karekok2.kokluKisim;
+
+    // Her iki karekök nesnesinin derecelerini topla
+    const dereceToplam = karekok1.derece + karekok2.derece;
+
+    // Yeni bir karekök nesnesi oluştur ve çarpımı bu nesneyle temsil et
+    const carpim = new Karekok()
+    carpim.reelKisim = reelCarpim
+    carpim.kokluKisim = kokluCarpim
+    carpim.derece = dereceToplam
+
+
+    return carpim;
+}
+
+  const handleOkeyPress = () => {
+    const [cell1, cell2] = selectedCells;
+    var value1 = board[cell1.row][cell1.col];
+    var value2 = board[cell2.row][cell2.col];
+
+    console.log("\n")
+    console.log("value 1 : " + value1)
+    console.log("value 2 : " + value2)
+ 
+
+    const karekok1 = new Karekok(value1);
+    const karekok2 = new Karekok(value2);
+
+    console.log()
+    karekok1.sayiyiYazdir()
+
+    console.log()
+
+    karekok2.sayiyiYazdir()
+
+    result = carpimHesapla(karekok1, karekok2).sayiyiYazdir()
+    console.log("Result : " + result)
+
+    const maxCellIndex = result > Math.sqrt(value1) ? 1 : 0;
+    const [maxCell] = selectedCells.splice(maxCellIndex, 1);
+    board[maxCell.row][maxCell.col] = result;
+    selectedCells.forEach((cell) => {
+      board[cell.row][cell.col] = null;
+    });
+    setSelectedCells([]);
+    setOkeyButtonEnabled(false);
+    setBoard([...board]);
+
+  };
 
   if (isLoading)
   {
@@ -402,55 +328,36 @@ const PlayPage = () => {
   }
   return (
     <View style={styles.container}>
-    <View style={styles.maxScoreContainer}>
-      <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
-    </View>
-    <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
-      <Text style={styles.resetButtonText}>Reset</Text>
-    </TouchableOpacity>
-
-    <View style={styles.scoreContainer}>
-      <Text style={styles.scoreText}>Score: {score}</Text>
-    </View>
-
-    <View style={styles.board}>
-      {board.map((row, rowIndex) => (
-        <View key={rowIndex} style={styles.row}>
-          {row.map((cell, cellIndex) => (
-            <TouchableOpacity key={cellIndex} style={styles.cell}>
-              {renderCell(cell)}
-            </TouchableOpacity>
-          ))}
-        </View>
-      ))}
-    </View>
-
-    <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={moveUp}>
-        <Text style={styles.buttonText}>Up</Text>
+      <View style={styles.maxScoreContainer}>
+        <Text style={styles.maxScoreText}> Max Score > {maxScore}</Text>
+      </View>
+      <TouchableOpacity style={styles.resetButton} onPress={restartGame}>
+        <Text style={styles.resetButtonText}>Reset</Text>
       </TouchableOpacity>
-    </View>
 
-    <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={moveLeft}>
-        <Text style={styles.buttonText}>Left</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={moveRight}>
-        <Text style={styles.buttonText}>Right</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.scoreContainer}>
+        <Text style={styles.scoreText}>Score: {score}</Text>
+      </View>
 
-    <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button} onPress={moveDown}>
-        <Text style={styles.buttonText}>Down</Text>
+      <View style={styles.grid}>
+        {board.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
+          </View>
+        ))}
+      </View>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: okeyButtonEnabled ? 'green' : 'gray' }]}
+        onPress={handleOkeyPress}
+        disabled={!okeyButtonEnabled}
+      >
+        <Text style={styles.buttonText}>Tamam</Text>
       </TouchableOpacity>
+      <CustomAlert
+        visibility={isPopupVisible}
+        dismissAlert={togglePopup}
+      />
     </View>
-
-    <CustomAlert
-      visibility={isPopupVisible}
-      dismissAlert={togglePopup}
-    />
-  </View>
   );
 };
 
@@ -494,7 +401,7 @@ const styles = StyleSheet.create({
     borderWidth: 5,
     borderColor: '#bbada0',
     borderRadius: 10,
-    padding:0,
+    padding: 0,
     marginTop: 10,
   },
   row: {
@@ -544,6 +451,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
 
+  },
+
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#faf8ef', // Önceki stile benzetmek için arka plan rengini değiştirdik
+  },
+  grid: {
+    borderWidth: 5, // Önceki stile benzetmek için çizgi kalınlığını değiştirdik
+    borderColor: '#bbada0', // Önceki stile benzetmek için çizgi rengini değiştirdik
+    borderRadius: 10,
+    padding: 0,
+    marginTop: 10,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  cell: {
+    width: 70,
+    height: 70,
+    margin: 5,
+    backgroundColor: '#cdc1b4', // Önceki stile benzetmek için hücre arka plan rengini değiştirdik
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+  selectedCell: {
+    backgroundColor: 'lightgreen', // Önceki stile benzetmek için seçili hücre rengini değiştirdik
+  },
+  cellText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#776e65',
+  },
+  button: {
+    marginTop: 10, // Önceki stile benzetmek için düğme aralığını değiştirdik
+    backgroundColor: '#8f7a66',
+    paddingVertical: 5,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontSize: 16, // Önceki stile benzetmek için metin boyutunu değiştirdik
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

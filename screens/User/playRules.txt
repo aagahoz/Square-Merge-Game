@@ -1,0 +1,22 @@
+
+
+iki sayının çarpımlarının sonucu ekrana yazdırılacak
+daha sonra sonucun karekökü alınacak 
+
+
+
+Sayı1 Sayı2
+
+  2     2        4          2
+  
+  2     2kök2    4kök2      
+
+  2     4
+
+  2     4kök2
+
+  2kök2 2kök2
+
+  kök2  2kök2
+
+  24^kök2 4^kök2   
