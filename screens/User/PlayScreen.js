@@ -4,17 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, query, where } from 'firebase/firestore';
 import CustomAlert from './CustomAlert';
-import Karekok from './Karekok.js';
+import { SquareRoot, generateRandomSquareRoot } from './squareRoot.js';
 
 
-const initialGridSize = 4;
-
-const generateRandomNumber = () => {
-  const possibleNumbers = [2, 4, 8];
-  return possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
-};
-
-
+const initialGridSize = 5;
+ 
 const PlayPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [board, setBoard] = useState([]);
@@ -23,7 +17,7 @@ const PlayPage = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
   const [selectedCells, setSelectedCells] = useState([]);
   const [okeyButtonEnabled, setOkeyButtonEnabled] = useState(false);
-  
+ 
   useEffect(() => {
     const loadGameFromStorage = async () => {
       try
@@ -59,10 +53,10 @@ const PlayPage = () => {
 
   const initializeBoard = () => {
     const newGrid = Array.from({ length: initialGridSize }, () =>
-      Array.from({ length: initialGridSize }, () => generateRandomNumber())
+      Array.from({ length: initialGridSize }, () => generateRandomSquareRoot())
     );
     setBoard(newGrid);
-    
+
   };
 
   const saveGameToStorage = async () => {
@@ -83,7 +77,7 @@ const PlayPage = () => {
     const currentUserEmail = currentUser.email;
     return currentUserEmail;
   }
-
+ 
   const updateMaxScoreInFirestore = async (email, newMaxScore) => {
     try
     {
@@ -241,81 +235,67 @@ const PlayPage = () => {
 
   const handleCellPress = (rowIndex, colIndex) => {
     const cellIndex = selectedCells.findIndex((cell) => cell.row === rowIndex && cell.col === colIndex);
-    if (cellIndex !== -1)
-    {
+    if (cellIndex !== -1) {
       const updatedSelectedCells = [...selectedCells];
       updatedSelectedCells.splice(cellIndex, 1);
       setSelectedCells(updatedSelectedCells);
-      if (updatedSelectedCells.length !== 2)
-      {
+      if (updatedSelectedCells.length !== 2) {
         setOkeyButtonEnabled(false);
       }
       return;
     }
-
+  
     if (selectedCells.length === 2) return;
+  
+    if (selectedCells.length === 1) {
+      const prevCell = selectedCells[0];
+      // Kontrol edilecek hücrenin indeksini al
+      const currentIndex = rowIndex * board.length + colIndex;
+      // Önceki hücrenin indeksini al
+      const prevIndex = prevCell.row * board.length + prevCell.col;
+      // Eğer iki hücre yan yana ya da alt alta değilse işlemi iptal et
+      if (Math.abs(currentIndex - prevIndex) !== 1 && Math.abs(currentIndex - prevIndex) !== board.length) return;
+    }
+  
     const cell = { row: rowIndex, col: colIndex };
     setSelectedCells([...selectedCells, cell]);
-    if (selectedCells.length === 1)
-    {
+  
+    if (selectedCells.length === 1) {
       setOkeyButtonEnabled(true);
     }
   };
 
-  function carpimHesapla(karekok1, karekok2) {
-    // Her iki karekök nesnesinin reel kısımlarını çarp
-    const reelCarpim = karekok1.reelKisim * karekok2.reelKisim;
-
-    // Her iki karekök nesnesinin köklü kısımlarını çarp
-    const kokluCarpim = karekok1.kokluKisim * karekok2.kokluKisim;
-
-    // Her iki karekök nesnesinin derecelerini topla
-    const dereceToplam = karekok1.derece + karekok2.derece;
-
-    // Yeni bir karekök nesnesi oluştur ve çarpımı bu nesneyle temsil et
-    const carpim = new Karekok()
-    carpim.reelKisim = reelCarpim
-    carpim.kokluKisim = kokluCarpim
-    carpim.derece = dereceToplam
-
-
-    return carpim;
-}
-
   const handleOkeyPress = () => {
     const [cell1, cell2] = selectedCells;
-    var value1 = board[cell1.row][cell1.col];
-    var value2 = board[cell2.row][cell2.col];
+    const value1 = board[cell1.row][cell1.col];
+    const value2 = board[cell2.row][cell2.col];
+  
+    // SquareRoot sınıfı ile nesneleri oluştur
+    const squareRoot1 = new SquareRoot();
+    squareRoot1.updateFromString(value1)
+    const squareRoot2 = new SquareRoot();
+    squareRoot2.updateFromString(value2)
 
-    console.log("\n")
-    console.log("value 1 : " + value1)
-    console.log("value 2 : " + value2)
- 
+    // SquareRoot nesnelerini çarp
+    squareRoot1.multiply(squareRoot2);
+    const temp = new SquareRoot( squareRoot1.integerPart)
+    temp.calculateSquareRoot()
 
-    const karekok1 = new Karekok(value1);
-    const karekok2 = new Karekok(value2);
-
-    console.log()
-    karekok1.sayiyiYazdir()
-
-    console.log()
-
-    karekok2.sayiyiYazdir()
-
-    result = carpimHesapla(karekok1, karekok2).sayiyiYazdir()
-    console.log("Result : " + result)
-
+    // Sonucu al ve formatla
+    const result = temp.getFormattedResult();
+  
+    // board ve selectedCells güncelle
     const maxCellIndex = result > Math.sqrt(value1) ? 1 : 0;
     const [maxCell] = selectedCells.splice(maxCellIndex, 1);
     board[maxCell.row][maxCell.col] = result;
     selectedCells.forEach((cell) => {
       board[cell.row][cell.col] = null;
     });
-    setSelectedCells([]);
+    setSelectedCells([]); 
     setOkeyButtonEnabled(false);
     setBoard([...board]);
-
   };
+    
 
   if (isLoading)
   {
